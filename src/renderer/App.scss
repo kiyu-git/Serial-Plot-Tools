@@ -6,12 +6,10 @@ body {
   position: relative;
   color: white;
   height: 100vh;
-  background: linear-gradient(
-    200.96deg,
-    #fedc2a -29.09%,
-    #dd5789 51.77%,
-    #7a2c9e 129.35%
-  );
+  background: linear-gradient(200.96deg,
+      #fedc2a -29.09%,
+      #dd5789 51.77%,
+      #7a2c9e 129.35%);
   font-family: sans-serif;
   overflow-y: hidden;
   display: flex;
@@ -59,4 +57,39 @@ a:hover {
   justify-content: center;
   align-items: center;
   margin: 20px 0;
+}
+
+
+.selectbox-005 {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.selectbox-005::after {
+  position: absolute;
+  right: 15px;
+  width: 10px;
+  height: 7px;
+  background-color: #535353;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  content: '';
+  pointer-events: none;
+}
+
+.selectbox-005 select {
+  appearance: none;
+  min-width: 230px;
+  height: 2.8em;
+  padding: .4em calc(.8em + 30px) .4em .8em;
+  border: none;
+  border-bottom: 2px solid #cccccc;
+  background-color: #fff;
+  color: #333333;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.selectbox-005 select:focus {
+  outline: none;
 }

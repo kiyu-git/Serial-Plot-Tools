@@ -8,12 +8,16 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
-import log from 'electron-log';
-import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
+const { BrowserWindow, app, ipcMain, shell } = require('electron');
+const log = require('electron-log');
+const { autoUpdater } = require('electron-updater');
+const path = require('path');
+const {
+  closeSerialPort,
+  getSerialPorts,
+  setSerialPort,
+} = require('./electron-src/lib/serialManager');
+const { resolveHtmlPath } = require('./util');
 
 class AppUpdater {
   constructor() {
@@ -24,12 +28,6 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -98,9 +96,6 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
-
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {
     shell.openExternal(edata.url);
@@ -110,6 +105,21 @@ const createWindow = async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
+
+  // Open the DevTools.
+  mainWindow.webContents.openDevTools();
+
+  ipcMain.handle('getSerialPorts', async (_e, _arg) => {
+    return await getSerialPorts();
+  });
+
+  ipcMain.handle('setSerialPort', async (_e, _arg) => {
+    return setSerialPort(_arg, mainWindow.webContents);
+  });
+
+  ipcMain.handle('closeSerialPort', async (_e, _arg) => {
+    return closeSerialPort();
+  });
 };
 
 /**
