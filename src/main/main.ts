@@ -114,7 +114,7 @@ const createWindow = async () => {
   });
 
   ipcMain.handle('setSerialPort', async (_e, _arg) => {
-    return setSerialPort(_arg, mainWindow.webContents);
+    return await setSerialPort(_arg, mainWindow.webContents);
   });
 
   ipcMain.handle('closeSerialPort', async (_e, _arg) => {

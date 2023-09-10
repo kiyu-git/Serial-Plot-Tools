@@ -94,6 +94,7 @@ export function DataViewer() {
       isPlotExist.current = true;
     } else {
       const updateLines = Array.from(state);
+      console.log(updateLines.length);
       for (let i = 0; i < state.length; i++) {
         let { lineData, layout, revision } = updateLines[i];
         lineData.x.push(newData.timestamp);

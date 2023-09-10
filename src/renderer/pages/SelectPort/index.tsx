@@ -18,8 +18,17 @@ export function SelectPort() {
     getAvailableSerialPorts();
   }, []);
 
-  const setSerialPort = (value: string) => {
-    window.api.setSerialPort(value);
+  const setSerialPort = async (value: string) => {
+    if (value == '') return;
+    try {
+      await window.api.setSerialPort(value);
+    } catch (e) {
+      console.warn(e);
+      alert(
+        'ポートがひらけませんでした。他のアプリケーションでこのポートを使用してる可能性があります。'
+      );
+      selectAvailablePorts.current.options[0].selected = true;
+    }
   };
 
   return (
