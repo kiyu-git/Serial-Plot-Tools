@@ -50,7 +50,7 @@ export function SelectPort() {
         再読み込み
       </button>
       <div>
-        <Link to="/AdjustGain" state={{ test: 'test' }}>
+        <Link to="/DataViewer" state={{ test: 'test' }}>
           <button>次へ</button>
         </Link>
       </div>

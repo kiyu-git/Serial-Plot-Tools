@@ -72,7 +72,7 @@ export function Record() {
 
   return (
     <div>
-      <Link to="/">
+      <Link to="/dataviewer">
         <button>back</button>
       </Link>
       <h1>Data Record</h1>
