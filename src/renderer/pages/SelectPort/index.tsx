@@ -1,3 +1,14 @@
+import { ArrowForwardIcon, RepeatIcon } from '@chakra-ui/icons';
+import {
+  Box,
+  Button,
+  Center,
+  Heading,
+  Select,
+  Stack,
+  Text,
+  Tooltip,
+} from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PortInfo } from 'serialport';
@@ -32,13 +43,14 @@ export function SelectPort() {
   };
 
   return (
-    <div>
-      <h1>Please select serial port</h1>
-      <p>
+    <Box>
+      <Heading>Please select serial port</Heading>
+      <Text>
         シリアルポートが現れない場合は、接続を再度確認してから、再読み込みボタンを押してください。
-      </p>
-      <label className="selectbox-005">
-        <select
+      </Text>
+      <Stack direction="row" spacing={4}>
+        <Select
+          size="lg"
           ref={selectAvailablePorts}
           onChange={(e) => setSerialPort(e.target.value)}
         >
@@ -50,19 +62,33 @@ export function SelectPort() {
                 : `${availablePort.path} (${availablePort.manufacturer})`}
             </option>
           ))}
-        </select>
-      </label>
-      <button
-        onClick={getAvailableSerialPorts}
-        ref={buttonGetAvailableSerialPorts}
-      >
-        再読み込み
-      </button>
-      <div>
-        <Link to="/DataViewer" state={{ test: 'test' }}>
-          <button>次へ</button>
-        </Link>
-      </div>
-    </div>
+        </Select>
+        <Tooltip hasArrow label="ポートの再検索">
+          <Button
+            colorScheme="teal"
+            variant="outline"
+            size="lz"
+            onClick={getAvailableSerialPorts}
+            ref={buttonGetAvailableSerialPorts}
+          >
+            <RepeatIcon w={10} h={8} />
+          </Button>
+        </Tooltip>
+      </Stack>
+      <Box>
+        <Center>
+          <Link to="/DataViewer" state={{ test: 'test' }}>
+            <Button
+              // isDisabled={true}
+              rightIcon={<ArrowForwardIcon />}
+              colorScheme="teal"
+              variant="outline"
+            >
+              Connect
+            </Button>
+          </Link>
+        </Center>
+      </Box>
+    </Box>
   );
 }

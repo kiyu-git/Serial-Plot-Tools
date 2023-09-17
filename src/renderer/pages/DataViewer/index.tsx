@@ -1,3 +1,5 @@
+import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
+import { Box, Button, Heading } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
@@ -114,13 +116,27 @@ export function DataViewer() {
     }
   }, [newData]);
 
+  const recordStart = async () => {
+    const result = await window.api.recordStart();
+  };
+
+  const recordStop = async () => {
+    const result = await window.api.recordStop();
+  };
+
   return (
-    <div>
+    <Box>
       <Link to="/">
-        <button>back</button>
+        <Button
+          leftIcon={<ArrowBackIcon />}
+          colorScheme="teal"
+          variant="outline"
+        >
+          back
+        </Button>
       </Link>
-      <h1>Data Viewer</h1>
-      <div id="graph-area">
+      <Heading>Data Viewer</Heading>
+      <Box id="graph-area">
         {state.map((line) => {
           return (
             <Plot
@@ -130,12 +146,26 @@ export function DataViewer() {
             />
           );
         })}
-      </div>
-      <div>
-        <Link to="/record">
-          <button>record →</button>
-        </Link>
-      </div>
-    </div>
+      </Box>
+      <Box>
+        {/* <Link to="/record"> */}
+        <Button
+          rightIcon={<ArrowForwardIcon />}
+          colorScheme="teal"
+          variant="outline"
+          onClick={() => recordStart()}
+        >
+          Record
+        </Button>
+        {/* </Link> */}
+        <Button
+          colorScheme="teal"
+          variant="outline"
+          onClick={() => recordStop()}
+        >
+          Stop
+        </Button>
+      </Box>
+    </Box>
   );
 }

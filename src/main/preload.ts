@@ -9,6 +9,8 @@ const electronHandler = {
   getSerialPorts: () => ipcRenderer.invoke('getSerialPorts'),
   setSerialPort: (selectedPort: string) =>
     ipcRenderer.invoke('setSerialPort', selectedPort),
+  recordStart: () => ipcRenderer.invoke('recordStart'),
+  recordStop: () => ipcRenderer.invoke('recordStop'),
   on: (channel: string, func: (...args: any[]) => void) => {
     //rendererでの受信用, funcはコールバック関数//
     ipcRenderer.on(channel, (event, ...args) => func(...args));

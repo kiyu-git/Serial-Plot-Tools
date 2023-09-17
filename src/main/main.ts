@@ -16,6 +16,8 @@ const {
   closeSerialPort,
   getSerialPorts,
   setSerialPort,
+  recordStart,
+  recordStop,
 } = require('./electron-src/lib/serialManager');
 const { resolveHtmlPath } = require('./util');
 
@@ -115,6 +117,14 @@ const createWindow = async () => {
 
   ipcMain.handle('setSerialPort', async (_e, _arg) => {
     return await setSerialPort(_arg, mainWindow.webContents);
+  });
+
+  ipcMain.handle('recordStart', async (_e, _arg) => {
+    return await recordStart(_arg, mainWindow.webContents);
+  });
+
+  ipcMain.handle('recordStop', async (_e, _arg) => {
+    return await recordStop(_arg, mainWindow.webContents);
   });
 
   ipcMain.handle('closeSerialPort', async (_e, _arg) => {
