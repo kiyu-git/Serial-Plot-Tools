@@ -12,7 +12,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PortInfo } from 'serialport';
-import '../../App.scss';
+import './index.scss';
 
 export function SelectPort() {
   const buttonGetAvailableSerialPorts = useRef<HTMLButtonElement>(null);

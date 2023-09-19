@@ -93,3 +93,9 @@ a:hover {
 .selectbox-005 select:focus {
     outline: none;
 }
+
+#graph-area {
+    width: 100%;
+    height: 600px;
+    overflow-y: auto;
+}
