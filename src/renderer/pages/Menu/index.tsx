@@ -6,12 +6,12 @@ import '../../App.scss';
 export function Menu() {
   return (
     <Box>
-      <Heading>Menu</Heading>
+      <Heading>Serial Plot Tools</Heading>
       <Text></Text>
       <Box>
         <Center>
           <Stack>
-            <Link to="/viewer">
+            <Link to="/DataViewer">
               <Button
                 rightIcon={<ArrowForwardIcon />}
                 colorScheme="teal"

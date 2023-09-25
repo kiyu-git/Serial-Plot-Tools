@@ -1,81 +1,64 @@
-import { Box } from '@chakra-ui/react';
-import '../../App.scss';
+// import { Box, Flex, Heading, Tag, Text } from '@chakra-ui/react';
+import Plot from 'react-plotly.js';
 
-export function Viewer() {
-  // const buttonGetAvailableSerialPorts = useRef<HTMLButtonElement>(null);
-  // const selectAvailablePorts = useRef<HTMLSelectElement>(null);
-  // const [availablePorts, SetAvailablePorts] = useState<Array<PortInfo>>([]);
-
-  // const getAvailableSerialPorts = async () => {
-  //   SetAvailablePorts([]);
-  //   const availableSerialPorts = await window.api.getSerialPorts();
-  //   console.log(availablePorts);
-  //   SetAvailablePorts(availableSerialPorts);
+export function DataViewer() {
+  // const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  //   e.stopPropagation();
+  //   e.preventDefault();
   // };
-  // useEffect(() => {
-  //   getAvailableSerialPorts();
-  // }, []);
 
-  // const setSerialPort = async (value: string) => {
-  //   if (value == '') return;
-  //   try {
-  //     await window.api.setSerialPort(value);
-  //   } catch (e) {
-  //     console.warn(e);
-  //     alert(
-  //       'ポートがひらけませんでした。他のアプリケーションでこのポートを使用してる可能性があります。'
-  //     );
-  //     selectAvailablePorts.current.options[0].selected = true;
-  //   }
+  // const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  //   e.stopPropagation();
+  //   e.preventDefault();
+  //   const file = e.dataTransfer.files[0];
+  //   showPlot(file.path);
+  // };
+
+  // const openFileDialog = async () => {
+  //   const filepath = await window.api.openFileDialog();
+  //   showPlot(filepath);
+  // };
+
+  // const showPlot = async (path: string) => {
+  //   const [header, data] = await window.api.loadData(path);
+  //   console.log(data);
   // };
 
   return (
-    <Box>
-      {/* <Heading>Please select serial port</Heading>
-      <Text>
-        シリアルポートが現れない場合は、接続を再度確認してから、再読み込みボタンを押してください。
-      </Text>
-      <Stack direction="row" spacing={4}>
-        <Select
-          size="lg"
-          ref={selectAvailablePorts}
-          onChange={(e) => setSerialPort(e.target.value)}
-        >
-          <option value="">選択してください</option>
-          {availablePorts.map((availablePort) => (
-            <option value={availablePort.path} key={availablePort.path}>
-              {availablePort.manufacturer === undefined
-                ? availablePort.path
-                : `${availablePort.path} (${availablePort.manufacturer})`}
-            </option>
-          ))}
-        </Select>
-        <Tooltip hasArrow label="ポートの再検索">
-          <Button
-            colorScheme="teal"
-            variant="outline"
-            size="lz"
-            onClick={getAvailableSerialPorts}
-            ref={buttonGetAvailableSerialPorts}
-          >
-            <RepeatIcon w={10} h={8} />
-          </Button>
-        </Tooltip>
-      </Stack>
-      <Box>
-        <Center>
-          <Link to="/DataViewer" state={{ test: 'test' }}>
-            <Button
-              // isDisabled={true}
-              rightIcon={<ArrowForwardIcon />}
-              colorScheme="teal"
-              variant="outline"
-            >
-              Connect
-            </Button>
-          </Link>
-        </Center>
-      </Box> */}
-    </Box>
+    <Plot
+      data={[
+        {
+          x: [1, 2, 3],
+          y: [2, 6, 3],
+          type: 'scatter',
+          mode: 'lines+markers',
+          marker: { color: 'red' },
+        },
+        { type: 'bar', x: [1, 2, 3], y: [2, 5, 3] },
+      ]}
+      layout={{ width: 320, height: 240, title: 'A Fancy Plot' }}
+    />
+    // <Box mx={3}>
+    //   <Box>
+    //     <Heading>Data Viewer</Heading>
+    //     <Text>Realtime Data Loggerで保存したデータをグラフにします</Text>
+    //   </Box>
+    //   <Flex my={3} color="white">
+    //     <Box w={'20%'} bg="blue">
+    //       <Box
+    //         border="3px"
+    //         borderStyle="dotted"
+    //         borderColor={'crimson'}
+    //         onDragOver={(e) => onDragOver(e)}
+    //         onDrop={(e) => onDrop(e)}
+    //       >
+    //         ここにファイルをドロップ
+    //         <br />
+    //         または<Tag onClick={openFileDialog}>ファイルを開く</Tag>
+    //       </Box>
+    //     </Box>
+    //     <Box flex="1" bg="tomato"></Box>
+    //   </Flex>
+    // </Box>
   );
 }

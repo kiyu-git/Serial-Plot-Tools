@@ -8,10 +8,12 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-const { BrowserWindow, app, ipcMain, shell } = require('electron');
+const { BrowserWindow, app, ipcMain, shell, dialog } = require('electron');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
+const fs = require('fs');
+const { parse } = require('csv-parse/sync');
 const {
   closeSerialPort,
   getSerialPorts,
@@ -130,6 +132,36 @@ const createWindow = async () => {
   ipcMain.handle('closeSerialPort', async (_e, _arg) => {
     return closeSerialPort();
   });
+
+  ipcMain.handle('openFileDialog', async () => {
+    return dialog
+      .showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        title: 'ファイルを選択する',
+        filters: [
+          {
+            name: 'csvファイル',
+            extensions: ['csv'],
+          },
+        ],
+      })
+      .then((result) => {
+        if (result.canceled) return;
+        return result.filePaths[0];
+      })
+      .catch((err) => console.log(`Error: ${err}`));
+  });
+
+  ipcMain.handle('loadData', async (_e, _arg) => {
+    const rawData = fs.readFileSync(_arg);
+    // 1行目はheader
+    const header = parse(rawData, { to_line: 1 })[0];
+    // 2行目以降を配列にする
+    const data = transpose(parse(rawData, { from_line: 2 }));
+    return [header, data];
+  });
+
+  const transpose = (a) => a[0].map((_, c) => a.map((r) => r[c]));
 };
 
 /**

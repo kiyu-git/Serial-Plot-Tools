@@ -66,7 +66,7 @@ class Line {
   }
 }
 
-export function DataViewer() {
+export function DataViewerOld() {
   const maxNumPoints = 15;
   const isPlotExist = useRef<boolean>(false);
   const [newData, setNewData] = useState<data>();
