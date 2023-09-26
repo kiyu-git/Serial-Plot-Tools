@@ -1,29 +1,24 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+
+import { contextBridge, ipcRenderer } from 'electron';
 
 export type Channels = 'ipc-example';
 
 const electronHandler = {
-  ipcRenderer: {
-    sendMessage(channel: Channels, ...args: unknown[]) {
-      ipcRenderer.send(channel, ...args);
-    },
-    on(channel: Channels, func: (...args: unknown[]) => void) {
-      const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
-        func(...args);
-      ipcRenderer.on(channel, subscription);
-
-      return () => {
-        ipcRenderer.removeListener(channel, subscription);
-      };
-    },
-    once(channel: Channels, func: (...args: unknown[]) => void) {
-      ipcRenderer.once(channel, (_event, ...args) => func(...args));
-    },
+  getSerialPorts: () => ipcRenderer.invoke('getSerialPorts'),
+  setSerialPort: (selectedPort: string) =>
+    ipcRenderer.invoke('setSerialPort', selectedPort),
+  recordStart: () => ipcRenderer.invoke('recordStart'),
+  recordStop: () => ipcRenderer.invoke('recordStop'),
+  openFileDialog: () => ipcRenderer.invoke('openFileDialog'),
+  loadData: (path: string) => ipcRenderer.invoke('loadData', path),
+  on: (channel: string, func: (...args: any[]) => void) => {
+    //rendererでの受信用, funcはコールバック関数//
+    ipcRenderer.on(channel, (event, ...args) => func(...args));
   },
 };
 
-contextBridge.exposeInMainWorld('electron', electronHandler);
+contextBridge.exposeInMainWorld('api', electronHandler);
 
 export type ElectronHandler = typeof electronHandler;
