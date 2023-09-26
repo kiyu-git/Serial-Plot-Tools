@@ -1,64 +1,114 @@
-// import { Box, Flex, Heading, Tag, Text } from '@chakra-ui/react';
+import { DownloadIcon } from '@chakra-ui/icons';
+import { Box, Center, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
+import { useState } from 'react';
 import Plot from 'react-plotly.js';
+import styles from './index.module.scss';
+
+type plotData = {
+  x: Number[];
+  y: Number[];
+  title: string;
+};
 
 export function DataViewer() {
-  // const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-  //   e.stopPropagation();
-  //   e.preventDefault();
-  // };
+  const [plotData, setPlotData] = useState<plotData[]>([]);
+  const [fileName, setFileName] = useState<string>('');
 
-  // const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
-  //   e.stopPropagation();
-  //   e.preventDefault();
-  //   const file = e.dataTransfer.files[0];
-  //   showPlot(file.path);
-  // };
+  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
 
-  // const openFileDialog = async () => {
-  //   const filepath = await window.api.openFileDialog();
-  //   showPlot(filepath);
-  // };
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    showPlot(file.path);
+  };
 
-  // const showPlot = async (path: string) => {
-  //   const [header, data] = await window.api.loadData(path);
-  //   console.log(data);
-  // };
+  const openFileDialog = async () => {
+    const filepath = await window.api.openFileDialog();
+    showPlot(filepath);
+  };
+
+  const showPlot = async (path: string) => {
+    setFileName(path);
+    const [header, data] = await window.api.loadData(path);
+    const formatData: plotData[] = [];
+    for (let i = 1; i < header.length; i++) {
+      formatData.push({ title: header[i], x: data[0], y: data[i] });
+    }
+
+    setPlotData(formatData);
+  };
 
   return (
-    <Plot
-      data={[
-        {
-          x: [1, 2, 3],
-          y: [2, 6, 3],
-          type: 'scatter',
-          mode: 'lines+markers',
-          marker: { color: 'red' },
-        },
-        { type: 'bar', x: [1, 2, 3], y: [2, 5, 3] },
-      ]}
-      layout={{ width: 320, height: 240, title: 'A Fancy Plot' }}
-    />
-    // <Box mx={3}>
-    //   <Box>
-    //     <Heading>Data Viewer</Heading>
-    //     <Text>Realtime Data Loggerで保存したデータをグラフにします</Text>
-    //   </Box>
-    //   <Flex my={3} color="white">
-    //     <Box w={'20%'} bg="blue">
-    //       <Box
-    //         border="3px"
-    //         borderStyle="dotted"
-    //         borderColor={'crimson'}
-    //         onDragOver={(e) => onDragOver(e)}
-    //         onDrop={(e) => onDrop(e)}
-    //       >
-    //         ここにファイルをドロップ
-    //         <br />
-    //         または<Tag onClick={openFileDialog}>ファイルを開く</Tag>
-    //       </Box>
-    //     </Box>
-    //     <Box flex="1" bg="tomato"></Box>
-    //   </Flex>
-    // </Box>
+    <Grid
+      mx={3}
+      templateAreas={`"header header" "nav main"`}
+      gridTemplateRows={'auto 1fr'}
+      gridTemplateColumns={'20% 1fr'}
+      h={'100vh'}
+      margin={0}
+      padding={2}
+    >
+      <GridItem area={'header'} margin={'0 0 1em 0'}>
+        <Heading>Data Viewer</Heading>
+        <Text>Realtime Data Loggerで保存したデータをグラフにします。</Text>
+      </GridItem>
+      <GridItem area={'nav'}>
+        <Box bgColor={'white'}>
+          <Heading fontSize={'xl'} mb={1}>
+            Select Data File
+          </Heading>
+          <Box
+            w={'100%'}
+            cursor="pointer"
+            padding={1}
+            borderWidth="1px"
+            borderRadius="md"
+            color={'teal.600'}
+            borderColor={'teal.600'}
+            minH={'150px'}
+            _hover={{ background: 'teal.50' }}
+            onDragOver={(e) => onDragOver(e)}
+            onDrop={(e) => onDrop(e)}
+            onClick={openFileDialog}
+          >
+            <Box>
+              <Text>Drag and drop file here</Text>
+              <Center>
+                <DownloadIcon boxSize={5} m={2} />
+              </Center>
+              <Text fontSize={'sm'}>{fileName}</Text>
+            </Box>
+          </Box>
+        </Box>
+      </GridItem>
+      <GridItem bg="" overflowX={'auto'} overflowY={'scroll'} area={'main'}>
+        {plotData?.map((data) => {
+          return (
+            <Plot
+              className={styles.plot}
+              key={data.title}
+              data={[
+                {
+                  x: data.x,
+                  y: data.y,
+                  type: 'scatter',
+                  mode: 'lines',
+                },
+              ]}
+              layout={{
+                xaxis: { title: '時刻' },
+                yaxis: { title: data.title },
+                title: '',
+                margin: { t: 0 },
+              }}
+            />
+          );
+        })}
+      </GridItem>
+    </Grid>
   );
 }
