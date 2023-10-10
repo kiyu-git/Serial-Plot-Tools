@@ -8,7 +8,14 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-const { BrowserWindow, app, ipcMain, shell, dialog } = require('electron');
+const {
+  BrowserWindow,
+  app,
+  ipcMain,
+  shell,
+  dialog,
+  powerMonitor,
+} = require('electron');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
@@ -32,6 +39,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let subWindowRealtimeDataLogger: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -72,6 +80,7 @@ const createWindow = async () => {
   };
 
   mainWindow = new BrowserWindow({
+    title: 'Serial Plot Tools',
     show: false,
     width: 1024,
     height: 728,
@@ -111,26 +120,81 @@ const createWindow = async () => {
   new AppUpdater();
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
+
+  ipcMain.handle('openRealtimeDataLogger', () => {
+    const { screen } = require('electron');
+
+    // Create a window that fills the screen's available work area.
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
+
+    subWindowRealtimeDataLogger = new BrowserWindow({
+      title: 'Realtime Data Logger',
+      width: width,
+      height: height,
+      icon: getAssetPath('icon.png'),
+      webPreferences: {
+        preload: app.isPackaged
+          ? path.join(__dirname, 'preload.js')
+          : path.join(__dirname, '../../.erb/dll/preload.js'),
+      },
+    });
+    subWindowRealtimeDataLogger.loadURL(
+      resolveHtmlPath('index.html', '/DataLogger')
+    );
+
+    subWindowRealtimeDataLogger.on('close', () => {
+      closeSerialPort();
+    });
+  });
+
+  ipcMain.handle('openDataViewer', () => {
+    const { screen } = require('electron');
+
+    // Create a window that fills the screen's available work area.
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
+
+    const subWindow = new BrowserWindow({
+      title: 'Data Viewer',
+      width: width,
+      height: height,
+      icon: getAssetPath('icon.png'),
+      webPreferences: {
+        preload: app.isPackaged
+          ? path.join(__dirname, 'preload.js')
+          : path.join(__dirname, '../../.erb/dll/preload.js'),
+      },
+    });
+    subWindow.loadURL(resolveHtmlPath('index.html', '/DataViewer'));
+  });
 
   ipcMain.handle('getSerialPorts', async (_e, _arg) => {
     return await getSerialPorts();
   });
 
   ipcMain.handle('setSerialPort', async (_e, _arg) => {
-    return await setSerialPort(_arg, mainWindow.webContents);
+    return await setSerialPort(_arg, subWindowRealtimeDataLogger.webContents);
   });
 
   ipcMain.handle('recordStart', async (_e, _arg) => {
-    return await recordStart(_arg, mainWindow.webContents);
+    return await recordStart(_arg, subWindowRealtimeDataLogger.webContents);
   });
 
   ipcMain.handle('recordStop', async (_e, _arg) => {
-    return await recordStop(_arg, mainWindow.webContents);
+    return await recordStop(_arg, subWindowRealtimeDataLogger.webContents);
   });
 
   ipcMain.handle('closeSerialPort', async (_e, _arg) => {
     return closeSerialPort();
+  });
+
+  ipcMain.handle('openSaveFolder', async (_e, _arg) => {
+    const filePath = _arg;
+    const folderPath = path.dirname(filePath);
+    shell.openPath(folderPath);
+    return '';
   });
 
   ipcMain.handle('openFileDialog', async () => {
@@ -187,3 +251,7 @@ app
     });
   })
   .catch(console.log);
+
+powerMonitor.on('suspend', () => {
+  console.log('System suspended');
+});
