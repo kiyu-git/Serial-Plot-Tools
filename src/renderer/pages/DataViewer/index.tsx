@@ -1,81 +1,114 @@
-import { Box } from '@chakra-ui/react';
-import '../../App.scss';
+import { DownloadIcon } from '@chakra-ui/icons';
+import { Box, Center, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
+import { useState } from 'react';
+import Plot from 'react-plotly.js';
+import styles from './index.module.scss';
 
-export function Viewer() {
-  // const buttonGetAvailableSerialPorts = useRef<HTMLButtonElement>(null);
-  // const selectAvailablePorts = useRef<HTMLSelectElement>(null);
-  // const [availablePorts, SetAvailablePorts] = useState<Array<PortInfo>>([]);
+type plotData = {
+  x: Number[];
+  y: Number[];
+  title: string;
+};
 
-  // const getAvailableSerialPorts = async () => {
-  //   SetAvailablePorts([]);
-  //   const availableSerialPorts = await window.api.getSerialPorts();
-  //   console.log(availablePorts);
-  //   SetAvailablePorts(availableSerialPorts);
-  // };
-  // useEffect(() => {
-  //   getAvailableSerialPorts();
-  // }, []);
+export function DataViewer() {
+  const [plotData, setPlotData] = useState<plotData[]>([]);
+  const [fileName, setFileName] = useState<string>('');
 
-  // const setSerialPort = async (value: string) => {
-  //   if (value == '') return;
-  //   try {
-  //     await window.api.setSerialPort(value);
-  //   } catch (e) {
-  //     console.warn(e);
-  //     alert(
-  //       'ポートがひらけませんでした。他のアプリケーションでこのポートを使用してる可能性があります。'
-  //     );
-  //     selectAvailablePorts.current.options[0].selected = true;
-  //   }
-  // };
+  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    showPlot(file.path);
+  };
+
+  const openFileDialog = async () => {
+    const filepath = await window.api.openFileDialog();
+    showPlot(filepath);
+  };
+
+  const showPlot = async (path: string) => {
+    setFileName(path);
+    const [header, data] = await window.api.loadData(path);
+    const formatData: plotData[] = [];
+    for (let i = 1; i < header.length; i++) {
+      formatData.push({ title: header[i], x: data[0], y: data[i] });
+    }
+
+    setPlotData(formatData);
+  };
 
   return (
-    <Box>
-      {/* <Heading>Please select serial port</Heading>
-      <Text>
-        シリアルポートが現れない場合は、接続を再度確認してから、再読み込みボタンを押してください。
-      </Text>
-      <Stack direction="row" spacing={4}>
-        <Select
-          size="lg"
-          ref={selectAvailablePorts}
-          onChange={(e) => setSerialPort(e.target.value)}
-        >
-          <option value="">選択してください</option>
-          {availablePorts.map((availablePort) => (
-            <option value={availablePort.path} key={availablePort.path}>
-              {availablePort.manufacturer === undefined
-                ? availablePort.path
-                : `${availablePort.path} (${availablePort.manufacturer})`}
-            </option>
-          ))}
-        </Select>
-        <Tooltip hasArrow label="ポートの再検索">
-          <Button
-            colorScheme="teal"
-            variant="outline"
-            size="lz"
-            onClick={getAvailableSerialPorts}
-            ref={buttonGetAvailableSerialPorts}
+    <Grid
+      mx={3}
+      templateAreas={`"header header" "nav main"`}
+      gridTemplateRows={'auto 1fr'}
+      gridTemplateColumns={'20% 1fr'}
+      h={'100vh'}
+      margin={0}
+      padding={2}
+    >
+      <GridItem area={'header'} margin={'0 0 1em 0'}>
+        <Heading>Data Viewer</Heading>
+        <Text>Realtime Data Loggerで保存したデータをグラフにします。</Text>
+      </GridItem>
+      <GridItem area={'nav'}>
+        <Box bgColor={'white'}>
+          <Heading fontSize={'xl'} mb={1}>
+            Select Data File
+          </Heading>
+          <Box
+            w={'100%'}
+            cursor="pointer"
+            padding={1}
+            borderWidth="1px"
+            borderRadius="md"
+            color={'teal.600'}
+            borderColor={'teal.600'}
+            minH={'150px'}
+            _hover={{ background: 'teal.50' }}
+            onDragOver={(e) => onDragOver(e)}
+            onDrop={(e) => onDrop(e)}
+            onClick={openFileDialog}
           >
-            <RepeatIcon w={10} h={8} />
-          </Button>
-        </Tooltip>
-      </Stack>
-      <Box>
-        <Center>
-          <Link to="/DataViewer" state={{ test: 'test' }}>
-            <Button
-              // isDisabled={true}
-              rightIcon={<ArrowForwardIcon />}
-              colorScheme="teal"
-              variant="outline"
-            >
-              Connect
-            </Button>
-          </Link>
-        </Center>
-      </Box> */}
-    </Box>
+            <Box>
+              <Text>Drag and drop file here</Text>
+              <Center>
+                <DownloadIcon boxSize={5} m={2} />
+              </Center>
+              <Text fontSize={'sm'}>{fileName}</Text>
+            </Box>
+          </Box>
+        </Box>
+      </GridItem>
+      <GridItem bg="" overflowX={'auto'} overflowY={'scroll'} area={'main'}>
+        {plotData?.map((data) => {
+          return (
+            <Plot
+              className={styles.plot}
+              key={data.title}
+              data={[
+                {
+                  x: data.x,
+                  y: data.y,
+                  type: 'scatter',
+                  mode: 'lines',
+                },
+              ]}
+              layout={{
+                xaxis: { title: '時刻' },
+                yaxis: { title: data.title },
+                title: '',
+                margin: { t: 0 },
+              }}
+            />
+          );
+        })}
+      </GridItem>
+    </Grid>
   );
 }
