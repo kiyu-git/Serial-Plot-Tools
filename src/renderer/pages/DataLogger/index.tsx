@@ -222,6 +222,11 @@ export function DataLogger() {
     window.api.on('info', (_data: info) => {
       setInfo(_data);
     });
+
+    window.api.on('close', (_data: boolean) => {
+      selectAvailablePorts.current!.options[0].selected = true;
+      setCurrentStatus(status.idle);
+    });
   }, []);
 
   // plot area function

@@ -147,6 +147,12 @@ const createWindow = async () => {
     subWindowRealtimeDataLogger.on('close', () => {
       closeSerialPort();
     });
+
+    powerMonitor.on('suspend', () => {
+      console.log('System suspended');
+      closeSerialPort();
+      subWindowRealtimeDataLogger.send('close', true);
+    });
   });
 
   ipcMain.handle('openDataViewer', () => {
@@ -251,7 +257,3 @@ app
     });
   })
   .catch(console.log);
-
-powerMonitor.on('suspend', () => {
-  console.log('System suspended');
-});

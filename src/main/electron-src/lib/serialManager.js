@@ -72,6 +72,7 @@ let dataRecorder;
 class DataRecorder {
   savePath = ""
   shouldRecord = false;
+  numSamples = 0;
   constructor() {
     // 保存パスの作成
     // 2022-08-26_20-13-47
@@ -90,6 +91,10 @@ class DataRecorder {
   saveData = (data) => {
     if (!this.shouldRecord) return;
     if (data.rawData[0].includes("*")) return;
+    if (this.numSamples < 1) {
+      this.numSamples += 1;
+      return; //最初の読み込みはこけることがあるので避ける
+    }
     // 保存する
     // ファイルが存在するか確認
     if (!fs.existsSync(this.savePath)) {
@@ -114,9 +119,9 @@ class DataRecorder {
     const info = {}
     /// 計測時間
     const elapsed_time = new Date() - start_date.getTime();
-    const elapsedSeconds = Math.floor(elapsed_time / 1000);
-    const elapsedMinutes = Math.floor(elapsed_time / 60000);
-    const elapsedHour = Math.floor(elapsed_time / 3600000);
+    const elapsedSeconds = Math.floor(elapsed_time / 1000) % 60;
+    const elapsedMinutes = Math.floor(elapsed_time / 60000) % 60;
+    const elapsedHour = Math.floor(elapsed_time / 3600000) % 24;
     const elapsedDay = Math.floor(elapsed_time / 86400000);
     let elapsed_time_format = elapsedDay < 1 ? "" : `${elapsedDay}days`
     elapsed_time_format += `${String(elapsedHour).padStart(2, "0")}:${String(elapsedMinutes).padStart(2, "0")}:${String(elapsedSeconds).padStart(2, "0")}`
