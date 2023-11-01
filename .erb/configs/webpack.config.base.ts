@@ -6,9 +6,11 @@ import TsconfigPathsPlugins from 'tsconfig-paths-webpack-plugin';
 import webpack from 'webpack';
 import { dependencies as externals } from '../../release/app/package.json';
 import webpackPaths from './webpack.paths';
+const nodeExternals = require('webpack-node-externals');
 
 const configuration: webpack.Configuration = {
-  externals: [...Object.keys(externals || {})],
+  externalsPresets: { node: true },
+  externals: [...Object.keys(externals || {}), nodeExternals()],
 
   stats: 'errors-only',
 

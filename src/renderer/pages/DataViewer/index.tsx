@@ -28,6 +28,7 @@ export function DataViewer() {
 
   const openFileDialog = async () => {
     const filepath = await window.api.openFileDialog();
+    if (filepath === undefined) return;
     showPlot(filepath);
   };
 
