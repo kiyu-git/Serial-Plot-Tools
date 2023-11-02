@@ -1,4 +1,6 @@
 {
+  "name": "serial-plot-tools",
+  "version": "0.1.0",
   "description": "A foundation for scalable desktop apps",
   "keywords": [
     "electron",
@@ -184,8 +186,8 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "Serial Plot Tools",
+    "appId": "org.erb.SerialPlotTools",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
