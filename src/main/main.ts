@@ -40,6 +40,7 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 let subWindowRealtimeDataLogger: BrowserWindow | null = null;
+let subWindowDataViewer: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -162,7 +163,7 @@ const createWindow = async () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
 
-    const subWindow = new BrowserWindow({
+    subWindowDataViewer = new BrowserWindow({
       title: 'Data Viewer',
       width: width,
       height: height,
@@ -173,7 +174,7 @@ const createWindow = async () => {
           : path.join(__dirname, '../../.erb/dll/preload.js'),
       },
     });
-    subWindow.loadURL(resolveHtmlPath('index.html', '/DataViewer'));
+    subWindowDataViewer.loadURL(resolveHtmlPath('index.html', '/DataViewer'));
   });
 
   ipcMain.handle('getSerialPorts', async (_e, _arg) => {
@@ -205,7 +206,7 @@ const createWindow = async () => {
 
   ipcMain.handle('openFileDialog', async () => {
     return dialog
-      .showOpenDialog(mainWindow, {
+      .showOpenDialog(subWindowDataViewer, {
         properties: ['openFile'],
         title: 'ファイルを選択する',
         filters: [
