@@ -7,6 +7,7 @@ import TerserPlugin from 'terser-webpack-plugin';
 import webpack from 'webpack';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import { merge } from 'webpack-merge';
+import nodeExternals from 'webpack-node-externals';
 import checkNodeEnv from '../scripts/check-node-env';
 import deleteSourceMaps from '../scripts/delete-source-maps';
 import baseConfig from './webpack.config.base';
@@ -22,7 +23,7 @@ const configuration: webpack.Configuration = {
 
   target: 'electron-main',
 
-  // externals: ['serialport'],
+  externals: [nodeExternals()],
 
   entry: {
     main: path.join(webpackPaths.srcMainPath, 'main.ts'),
