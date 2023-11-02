@@ -2,6 +2,9 @@
 
 Arduino などからのシリアル通信の値をリアルタイムにプロットし、csv データとして保存するためのアプリケーション
 
+![](./_img/SerialPlotTool.png)
+![](./_img/RealtimeDataLogger.png)
+
 ## Install
 
 ### Mac
