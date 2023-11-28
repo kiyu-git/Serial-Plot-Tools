@@ -19,7 +19,9 @@ Arduino などからのシリアル通信の値をリアルタイムにプロッ
 
 ### Linux
 
-以下の Develop に従って、アプリをご自身でビルドしてください。
+armv7 (Raspberry pi 32bit)の場合は[release ページ](https://github.com/kiyu-git/Serial-Plot-Tools/releases/)から AppImage ファイルをダウンロードし、インストールしてください。
+
+それ以外の場合は、以下の Develop に従って、アプリをご自身でビルドしてください。
 
 ## Develop
 
