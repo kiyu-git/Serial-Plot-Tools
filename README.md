@@ -33,6 +33,9 @@ Clone the repo and install dependencies:
 git clone https://github.com/kiyu-git/Serial-Plot-Tools.git
 cd Serial-Plot-Tools
 npm install
+cd release/app
+npm install
+cd ../..
 ```
 
 ### Start App

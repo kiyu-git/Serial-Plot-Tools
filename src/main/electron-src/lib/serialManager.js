@@ -10,9 +10,6 @@ require('date-utils');
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
-const {
-  web
-} = require('webpack');
 
 // handle serial port //
 const getSerialPorts = async () => {
