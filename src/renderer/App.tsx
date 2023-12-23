@@ -11,8 +11,6 @@ export default function App() {
         <Route path="/" element={<Menu />} />
         <Route path="/DataViewer" element={<DataViewer />} />
         <Route path="/DataLogger" element={<DataLogger />} />
-        {/* <Route path="/recorder/dataviewer" element={<DataViewerOld />} />
-        <Route path="/recorder/record" element={<Record />} /> */}
       </Routes>
     </Router>
   );
