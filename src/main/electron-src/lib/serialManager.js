@@ -42,10 +42,9 @@ const setSerialPort = (_portPath, _webContents) => {
     }));
 
     parser.on('data', function (_rawData) {
-      const dt = new Date();
-      const timeStamp = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()} ${dt.getHours()}:${dt.getMinutes().toString().padStart(2, "0")}:${dt.getSeconds().toString().padStart(2, "0")}`;
+      const currentTime = new Date();
       const data = {
-        timestamp: timeStamp,
+        timestamp: currentTime,
         rawData: _rawData.split(",")
       }
       webContents.send("newData", data);

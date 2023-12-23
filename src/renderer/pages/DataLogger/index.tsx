@@ -39,10 +39,10 @@ class Line {
   lineData: PlotData;
   layout: Layout;
   revision: number;
-  shortDisplayNum: number;
-  shortX: string[];
+  shortDisplaySeconds: number;
+  shortX: Date[];
   shortY: number[];
-  longX: string[];
+  longX: Date[];
   longY: number[];
 
   constructor(name: string) {
@@ -63,19 +63,28 @@ class Line {
     };
 
     this.revision = 0;
-    this.shortDisplayNum = 16;
+    this.shortDisplaySeconds = 10;
     this.longX = [];
     this.shortX = [];
     this.longY = [];
     this.shortY = [];
   }
 
-  appendData(x: string, y: number) {
+  appendData(x: Date, y: number) {
     this.longX.push(x);
     this.longY.push(y);
     this.shortX.push(x);
     this.shortY.push(y);
-    if (this.shortDisplayNum < this.shortX.length) {
+
+    const currentTime = new Date();
+    const nSecondsAgo = new Date(
+      currentTime.getTime() - this.shortDisplaySeconds * 1000
+    );
+
+    for (let i = 0; i < this.shortX.length; i++) {
+      if (nSecondsAgo < this.shortX[i]) {
+        break;
+      }
       this.shortX.shift();
       this.shortY.shift();
     }
@@ -215,7 +224,6 @@ export function DataLogger() {
         console.log(_data.rawData[0]);
         return;
       }
-      console.log(_data);
       setNewData(_data);
     });
 
