@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -26,6 +27,11 @@ jobs:
         with:
           node-version: 18
           cache: npm
+          
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10' 
 
       - name: Install and build
         run: |
