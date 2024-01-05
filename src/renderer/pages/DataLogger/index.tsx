@@ -202,7 +202,9 @@ export function DataLogger() {
       const updateLines = Array.from(lines);
       for (let i = 0; i < lines.length; i++) {
         const pointY =
-          newData.rawData[i].match(/[+-]?(?:\d+\.?\d*|\.\d+)/)![0] || '0';
+          newData.rawData[i]
+            .split(':')[1]
+            .match(/[+-]?(?:\d+\.?\d*|\.\d+)/)![0] || '0';
         updateLines[i].appendData(newData.timestamp, parseFloat(pointY));
       }
       setLines(updateLines);
