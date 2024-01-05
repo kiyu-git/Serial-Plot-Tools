@@ -25,7 +25,7 @@ import Plot from 'react-plotly.js';
 import styles from './index.module.scss';
 
 type data = {
-  timestamp: string;
+  timestamp: Date;
   rawData: string[];
 };
 
@@ -89,7 +89,7 @@ class Line {
       this.shortY.shift();
     }
 
-    this.layout.datarevision += 1;
+    this.layout.datarevision = Number(this.layout.datarevision) + 1;
     this.revision += 1;
   }
 
@@ -114,9 +114,10 @@ class Line {
 const status = {
   idle: 0,
   portSelected: 1,
-  Streaming: 2,
-  recordStarted: 3,
-  recordStopped: 4,
+  chgBaudRate: 2,
+  streaming: 3,
+  recordStarted: 4,
+  recordStopped: 5,
 };
 
 const displayModes = {
@@ -124,10 +125,16 @@ const displayModes = {
   long: 1,
 };
 
+const availableBaudRates = [
+  300, 600, 750, 1200, 2400, 4800, 9600, 19200, 31250, 38400, 57600, 74880,
+  115200, 230400, 250000, 460800, 500000, 921600, 1000000, 2000000,
+];
+
 export function DataLogger() {
   const buttonGetAvailableSerialPorts = useRef<HTMLButtonElement>(null);
   const selectAvailablePorts = useRef<HTMLSelectElement>(null);
   const [availablePorts, SetAvailablePorts] = useState<Array<PortInfo>>([]);
+  const [baudRate, setBaudRate] = useState<string>('9600');
   const [newData, setNewData] = useState<data>();
   const [info, setInfo] = useState<info>();
   const [lines, setLines] = useState<Array<Line>>([]);
@@ -137,6 +144,7 @@ export function DataLogger() {
 
   // set serial port
   const getAvailableSerialPorts = async () => {
+    setCurrentStatus(status.idle);
     SetAvailablePorts([]);
     const availableSerialPorts = await window.api.getSerialPorts();
     SetAvailablePorts(availableSerialPorts);
@@ -161,12 +169,23 @@ export function DataLogger() {
     }
   };
 
+  const ChangeBaudRate = async (value: string) => {
+    try {
+      await window.api.setBaudRate(value);
+      setBaudRate(value);
+      setCurrentStatus(status.portSelected);
+      // 読み込み中
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
   // plot functions
   useEffect(() => {
     if (newData === undefined) return;
     if (
       !(
-        currentStatus === status.Streaming ||
+        currentStatus === status.streaming ||
         currentStatus === status.recordStarted
       )
     ) {
@@ -178,12 +197,14 @@ export function DataLogger() {
         lines.push(line);
       }
       setLines(lines);
-      setCurrentStatus(status.Streaming);
+      setCurrentStatus(status.streaming);
     } else {
       const updateLines = Array.from(lines);
       for (let i = 0; i < lines.length; i++) {
         const pointY =
-          newData.rawData[i].match(/[+-]?(?:\d+\.?\d*|\.\d+)/)![0] || '0';
+          newData.rawData[i]
+            .split(':')[1]
+            .match(/[+-]?(?:\d+\.?\d*|\.\d+)/)![0] || '0';
         updateLines[i].appendData(newData.timestamp, parseFloat(pointY));
       }
       setLines(updateLines);
@@ -244,6 +265,7 @@ export function DataLogger() {
         // 何も出さない
         return;
       case status.portSelected:
+      case status.chgBaudRate:
         // loading
         return (
           <Center h={'100%'}>
@@ -302,6 +324,7 @@ export function DataLogger() {
                 color={'teal.600'}
                 borderColor={'teal.600'}
                 ref={selectAvailablePorts}
+                isDisabled={currentStatus === status.recordStarted}
                 onChange={(e) => setSerialPort(e.target.value)}
               >
                 <option value="">選択してください</option>
@@ -318,12 +341,43 @@ export function DataLogger() {
                   colorScheme="teal"
                   variant="outline"
                   size="sm"
+                  isDisabled={currentStatus === status.recordStarted}
                   onClick={getAvailableSerialPorts}
                   ref={buttonGetAvailableSerialPorts}
                 >
                   <RepeatIcon w={5} h={4} />
                 </Button>
               </Tooltip>
+            </Stack>
+          </Box>
+          <Box bgColor={'white'}>
+            <Heading fontSize={'xl'} mb={1}>
+              Select Baud Rate
+            </Heading>
+            <Stack direction="row" spacing={1}>
+              <Select
+                size="sm"
+                borderWidth="1px"
+                borderRadius="md"
+                color={'teal.600'}
+                borderColor={'teal.600'}
+                ref={selectAvailablePorts}
+                value={baudRate}
+                isDisabled={
+                  currentStatus == status.idle ||
+                  currentStatus == status.recordStarted
+                }
+                onChange={(e) => ChangeBaudRate(e.target.value)}
+              >
+                {availableBaudRates.map((availableBaudRate) => (
+                  <option
+                    value={`${availableBaudRate}`}
+                    key={availableBaudRate}
+                  >
+                    {`${availableBaudRate} baud`}
+                  </option>
+                ))}
+              </Select>
             </Stack>
           </Box>
           <Box bgColor={'white'}>
@@ -336,7 +390,7 @@ export function DataLogger() {
                 variant="outline"
                 size="sm"
                 onClick={recordStart}
-                isDisabled={currentStatus != status.Streaming}
+                isDisabled={currentStatus != status.streaming}
                 w={'48%'}
               >
                 Start

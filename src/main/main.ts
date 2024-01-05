@@ -25,6 +25,7 @@ const {
   closeSerialPort,
   getSerialPorts,
   setSerialPort,
+  setBaudRate,
   recordStart,
   recordStop,
 } = require('./electron-src/lib/serialManager');
@@ -183,6 +184,10 @@ const createWindow = async () => {
 
   ipcMain.handle('setSerialPort', async (_e, _arg) => {
     return await setSerialPort(_arg, subWindowRealtimeDataLogger.webContents);
+  });
+
+  ipcMain.handle('setBaudRate', async (_e, _arg) => {
+    return await setBaudRate(_arg, subWindowRealtimeDataLogger.webContents);
   });
 
   ipcMain.handle('recordStart', async (_e, _arg) => {

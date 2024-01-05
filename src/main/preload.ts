@@ -12,6 +12,8 @@ const electronHandler = {
   setSerialPort: (selectedPort: string) =>
     ipcRenderer.invoke('setSerialPort', selectedPort),
   closeSerialPort: () => ipcRenderer.invoke('closeSerialPort'),
+  setBaudRate: (baudRate: string) =>
+    ipcRenderer.invoke('setBaudRate', baudRate),
   recordStart: () => ipcRenderer.invoke('recordStart'),
   recordStop: () => ipcRenderer.invoke('recordStop'),
   openSaveFolder: (path: string) => ipcRenderer.invoke('openSaveFolder', path),

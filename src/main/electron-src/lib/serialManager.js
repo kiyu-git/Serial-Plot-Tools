@@ -19,14 +19,17 @@ const getSerialPorts = async () => {
 
 
 let port;
+let portPath;
+let baudRate = 9600;
 let webContents;
 
 const setSerialPort = (_portPath, _webContents) => {
   return new Promise(function (resolve, reject) {
     closeSerialPort();
+    portPath = _portPath
     port = new SerialPort({
-      path: _portPath,
-      baudRate: 9600
+      path: portPath,
+      baudRate: baudRate
     }, function (err) {
       if (err) {
         reject(err.message);
@@ -61,6 +64,12 @@ const closeSerialPort = () => {
   if (port !== undefined && port.isOpen) {
     port.close();
   }
+}
+
+// handle baudRate //
+const setBaudRate = async (_baudRate, _webContents) => {
+  baudRate = Number(_baudRate);
+  await setSerialPort(portPath, _webContents);
 }
 
 // handle save  //
@@ -166,6 +175,7 @@ module.exports = {
   getSerialPorts,
   setSerialPort,
   closeSerialPort,
+  setBaudRate,
   recordStart,
   recordStop
 };
