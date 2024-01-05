@@ -5,6 +5,12 @@ Arduino などからのシリアル通信の値をリアルタイムにプロッ
 ![](./_img/SerialPlotTool.png)
 ![](./_img/RealtimeDataLogger.png)
 
+## How to use
+
+Install の項に従ってインストールすると簡単に使用できます。
+
+Arduino のスケッチファイルについては、`arduino_example`を参考にしてください。
+
 ## Change log
 
 [Change Log](https://github.com/kiyu-git/Serial-Plot-Tools/blob/main/CHANGELOG.md)
