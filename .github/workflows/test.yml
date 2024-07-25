@@ -1,6 +1,6 @@
 name: Test
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
@@ -19,6 +19,11 @@ jobs:
         with:
           node-version: 18
           cache: npm
+       
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10' 
 
       - name: npm install
         run: |
