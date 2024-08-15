@@ -36,8 +36,11 @@ export function DataViewer() {
     setFileName(path);
     const [header, data] = await window.api.loadData(path);
     const formatData: plotData[] = [];
+    const datetime_data = data[0].map((str_datetime: string) => {
+      return new Date(str_datetime);
+    });
     for (let i = 1; i < header.length; i++) {
-      formatData.push({ title: header[i], x: data[0], y: data[i] });
+      formatData.push({ title: header[i], x: datetime_data, y: data[i] });
     }
 
     setPlotData(formatData);
