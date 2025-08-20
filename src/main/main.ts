@@ -1,4 +1,5 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
+/* global BrowserWindow */
 
 /**
  * This module executes inside of electron's main process. You can start
@@ -31,6 +32,8 @@ const {
 } = require('./electron-src/lib/serialManager');
 const { resolveHtmlPath } = require('./util');
 
+const transpose = (a) => a[0].map((_, c) => a.map((r) => r[c]));
+
 class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -40,7 +43,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let subWindowRealtimeDataLogger: BrowserWindow | null = null;
+const subWindowRealtimeDataLogger: BrowserWindow[] = [];
 let subWindowDataViewer: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
@@ -131,10 +134,10 @@ const createWindow = async () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
 
-    subWindowRealtimeDataLogger = new BrowserWindow({
+    const newWindow = new BrowserWindow({
       title: 'Realtime Data Logger',
-      width: width,
-      height: height,
+      width,
+      height,
       icon: getAssetPath('icon.png'),
       webPreferences: {
         preload: app.isPackaged
@@ -142,19 +145,19 @@ const createWindow = async () => {
           : path.join(__dirname, '../../.erb/dll/preload.js'),
       },
     });
-    subWindowRealtimeDataLogger.loadURL(
-      resolveHtmlPath('index.html', '/DataLogger')
-    );
+    newWindow.loadURL(resolveHtmlPath('index.html', '/DataLogger'));
 
-    subWindowRealtimeDataLogger.on('close', () => {
-      closeSerialPort();
+    newWindow.on('close', () => {
+      closeSerialPort(newWindow.webContents);
     });
 
     powerMonitor.on('suspend', () => {
       console.log('System suspended');
-      closeSerialPort();
-      subWindowRealtimeDataLogger.send('close', true);
+      closeSerialPort(newWindow.webContents);
+      newWindow.send('close', true);
     });
+
+    subWindowRealtimeDataLogger.push(newWindow);
   });
 
   ipcMain.handle('openDataViewer', () => {
@@ -166,8 +169,8 @@ const createWindow = async () => {
 
     subWindowDataViewer = new BrowserWindow({
       title: 'Data Viewer',
-      width: width,
-      height: height,
+      width,
+      height,
       icon: getAssetPath('icon.png'),
       webPreferences: {
         preload: app.isPackaged
@@ -178,32 +181,32 @@ const createWindow = async () => {
     subWindowDataViewer.loadURL(resolveHtmlPath('index.html', '/DataViewer'));
   });
 
-  ipcMain.handle('getSerialPorts', async (_e, _arg) => {
-    return await getSerialPorts();
+  ipcMain.handle('getSerialPorts', async (_, __) => {
+    return getSerialPorts();
   });
 
-  ipcMain.handle('setSerialPort', async (_e, _arg) => {
-    return await setSerialPort(_arg, subWindowRealtimeDataLogger.webContents);
+  ipcMain.handle('setSerialPort', async (e, arg) => {
+    return setSerialPort(arg, e.sender);
   });
 
-  ipcMain.handle('setBaudRate', async (_e, _arg) => {
-    return await setBaudRate(_arg, subWindowRealtimeDataLogger.webContents);
+  ipcMain.handle('setBaudRate', async (e, arg) => {
+    return setBaudRate(arg, e.sender);
   });
 
-  ipcMain.handle('recordStart', async (_e, _arg) => {
-    return await recordStart(_arg, subWindowRealtimeDataLogger.webContents);
+  ipcMain.handle('recordStart', async (e) => {
+    return recordStart(e.sender);
   });
 
-  ipcMain.handle('recordStop', async (_e, _arg) => {
-    return await recordStop(_arg, subWindowRealtimeDataLogger.webContents);
+  ipcMain.handle('recordStop', async (e) => {
+    return recordStop(e.sender);
   });
 
-  ipcMain.handle('closeSerialPort', async (_e, _arg) => {
-    return closeSerialPort();
+  ipcMain.handle('closeSerialPort', async (e) => {
+    return closeSerialPort(e.sender);
   });
 
-  ipcMain.handle('openSaveFolder', async (_e, _arg) => {
-    const filePath = _arg;
+  ipcMain.handle('openSaveFolder', async (_, arg) => {
+    const filePath = arg;
     const folderPath = path.dirname(filePath);
     shell.openPath(folderPath);
     return '';
@@ -225,19 +228,20 @@ const createWindow = async () => {
         if (result.canceled) return;
         return result.filePaths[0];
       })
-      .catch((err) => console.log(`Error: ${err}`));
+      .catch((err) => {
+        console.log(`Error: ${err}`);
+        return undefined; // Consistent return
+      });
   });
 
-  ipcMain.handle('loadData', async (_e, _arg) => {
-    const rawData = fs.readFileSync(_arg);
+  ipcMain.handle('loadData', async (_, arg) => {
+    const rawData = fs.readFileSync(arg);
     // 1行目はheader
     const header = parse(rawData, { to_line: 1 })[0];
     // 2行目以降を配列にする
     const data = transpose(parse(rawData, { from_line: 2 }));
     return [header, data];
   });
-
-  const transpose = (a) => a[0].map((_, c) => a.map((r) => r[c]));
 };
 
 /**

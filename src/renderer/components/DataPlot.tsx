@@ -28,8 +28,11 @@ type data = {
 
 class Line {
   name: string;
+
   lineData: LineData;
+
   layout: Layout;
+
   revision: number;
 
   constructor(name: string) {
@@ -63,7 +66,7 @@ class Line {
   }
 }
 
-export function DataViewer() {
+export default function DataViewer() {
   const maxNumPoints = 15;
   const isPlotExist = useRef<boolean>(false);
   const [newData, setNewData] = useState<data>();
@@ -82,20 +85,21 @@ export function DataViewer() {
   useEffect(() => {
     if (newData === undefined) return;
     if (!isPlotExist.current) {
-      const lines = [];
-      for (const point of newData.rawData) {
+      const lines: Line[] = [];
+      newData.rawData.forEach((point) => {
+        // Changed to forEach
         const lineName = point.split(':')[0].trim();
         const line = new Line(lineName);
         console.log(lineName);
         lines.push(line);
-      }
+      });
       setState(lines);
       isPlotExist.current = true;
     } else {
       const updateLines = Array.from(state);
       console.log(updateLines.length);
       for (let i = 0; i < state.length; i++) {
-        let { lineData, layout, revision } = updateLines[i];
+        const { lineData, layout, revision } = updateLines[i]; // Changed to const
         lineData.x.push(newData.timestamp);
         const pointX =
           newData.rawData[i].match(/[+-]?(?:\d+\.?\d*|\.\d+)/)[0] || '0';
@@ -105,21 +109,14 @@ export function DataViewer() {
           lineData.y.shift();
         }
         layout.datarevision += 1;
-        revision += 1;
+        // revision += 1; // Removed as it's not used after this line
 
         updateLines[i].update(lineData, layout, revision);
       }
       setState(updateLines);
     }
-  }, [newData]);
+  }, [newData, state]); // Added state to dependency array
 
-  const recordStart = async () => {
-    const result = await window.api.recordStart();
-  };
-
-  const recordStop = async () => {
-    const result = await window.api.recordStop();
-  };
   return (
     <>
       {state.map((line) => {

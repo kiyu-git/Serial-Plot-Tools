@@ -36,13 +36,21 @@ type info = {
 
 class Line {
   name: string;
+
   lineData: PlotData;
+
   layout: Layout;
+
   revision: number;
+
   shortDisplaySeconds: number;
+
   shortX: Date[];
+
   shortY: number[];
+
   longX: Date[];
+
   longY: number[];
 
   constructor(name: string) {
@@ -94,11 +102,12 @@ class Line {
   }
 
   getLineData(mode: Number) {
-    if (mode == 0) {
+    if (mode === 0) {
       this.lineData.x = this.shortX;
       this.lineData.y = this.shortY;
       return this.lineData;
-    } else if (mode == 1) {
+    }
+    if (mode === 1) {
       this.lineData.x = this.longX;
       this.lineData.y = this.longY;
       return this.lineData;
@@ -130,7 +139,7 @@ const availableBaudRates = [
   115200, 230400, 250000, 460800, 500000, 921600, 1000000, 2000000,
 ];
 
-export function DataLogger() {
+export default function DataLogger() {
   const buttonGetAvailableSerialPorts = useRef<HTMLButtonElement>(null);
   const selectAvailablePorts = useRef<HTMLSelectElement>(null);
   const [availablePorts, SetAvailablePorts] = useState<Array<PortInfo>>([]);
@@ -151,7 +160,7 @@ export function DataLogger() {
   };
 
   const setSerialPort = async (value: string) => {
-    if (value == '') {
+    if (value === '') {
       window.api.closeSerialPort();
       setCurrentStatus(status.idle);
       return;
@@ -183,33 +192,29 @@ export function DataLogger() {
   // plot functions
   useEffect(() => {
     if (newData === undefined) return;
+
     if (
-      !(
-        currentStatus === status.streaming ||
-        currentStatus === status.recordStarted
-      )
+      currentStatus !== status.streaming &&
+      currentStatus !== status.recordStarted
     ) {
-      const lines = [];
-      for (const point of newData.rawData) {
+      const initialLines = newData.rawData.map((point) => {
         const lineName = point.split(':')[0].trim();
-        const line = new Line(lineName);
-        console.log(lineName);
-        lines.push(line);
-      }
-      setLines(lines);
+        return new Line(lineName);
+      });
+      setLines(initialLines);
       setCurrentStatus(status.streaming);
     } else {
-      const updateLines = Array.from(lines);
-      for (let i = 0; i < lines.length; i++) {
+      const updateLines = [...lines];
+      newData.rawData.forEach((point, i) => {
         const pointY =
-          newData.rawData[i]
-            .split(':')[1]
-            .match(/[+-]?(?:\d+\.?\d*|\.\d+)/)![0] || '0';
-        updateLines[i].appendData(newData.timestamp, parseFloat(pointY));
-      }
+          point.split(':')[1].match(/[+-]?(?:\d+\.?\d*|\.\d+)/)?.[0] || '0';
+        if (updateLines[i]) {
+          updateLines[i].appendData(newData.timestamp, parseFloat(pointY));
+        }
+      });
       setLines(updateLines);
     }
-  }, [newData]);
+  }, [newData, currentStatus, lines]);
 
   // record functions
   const recordStart = async () => {
@@ -227,13 +232,13 @@ export function DataLogger() {
   };
 
   const recordStop = async () => {
-    const result = await window.api.recordStop();
+    await window.api.recordStop();
     setCurrentStatus(status.portSelected);
     setDisplayMode(displayModes.short);
   };
 
   const openSaveFolder = async () => {
-    const result = await window.api.openSaveFolder(savePath);
+    await window.api.openSaveFolder(savePath);
   };
 
   // 初回のみ実行
@@ -268,8 +273,8 @@ export function DataLogger() {
       case status.chgBaudRate:
         // loading
         return (
-          <Center h={'100%'}>
-            <VStack spacing={'1em'}>
+          <Center h="100%">
+            <VStack spacing="1em">
               <Spinner
                 thickness="4px"
                 speed="0.65s"
@@ -284,10 +289,10 @@ export function DataLogger() {
 
       default:
         // グラフ描画
-        return lines.map((line, idx) => {
+        return lines.map((line) => {
           return (
             <Plot
-              key={`plot_${idx}`}
+              key={line.name}
               className={styles.plot}
               data={[line.getLineData(displayMode)]}
               layout={line.layout}
@@ -301,19 +306,19 @@ export function DataLogger() {
   return (
     <Grid
       templateAreas={`"header header" "nav main"`}
-      gridTemplateRows={'auto 1fr'}
-      gridTemplateColumns={'20% 1fr'}
-      h={'100vh'}
+      gridTemplateRows="auto 1fr"
+      gridTemplateColumns="20% 1fr"
+      h="100vh"
       m={3}
     >
-      <GridItem area={'header'} margin={'0 0 1em 0'}>
+      <GridItem area="header" margin="0 0 1em 0">
         <Heading>Realtime Data Logger</Heading>
         <Text>リアルタイムの測定値を表示・保存します。</Text>
       </GridItem>
-      <GridItem area={'nav'}>
+      <GridItem area="nav">
         <Stack direction="column" spacing={5}>
-          <Box bgColor={'white'}>
-            <Heading fontSize={'xl'} mb={1}>
+          <Box bgColor="white">
+            <Heading fontSize="xl" mb={1}>
               Select Serial Port
             </Heading>
             <Stack direction="row" spacing={1}>
@@ -321,8 +326,8 @@ export function DataLogger() {
                 size="sm"
                 borderWidth="1px"
                 borderRadius="md"
-                color={'teal.600'}
-                borderColor={'teal.600'}
+                color="teal.600"
+                borderColor="teal.600"
                 ref={selectAvailablePorts}
                 isDisabled={currentStatus === status.recordStarted}
                 onChange={(e) => setSerialPort(e.target.value)}
@@ -350,8 +355,8 @@ export function DataLogger() {
               </Tooltip>
             </Stack>
           </Box>
-          <Box bgColor={'white'}>
-            <Heading fontSize={'xl'} mb={1}>
+          <Box bgColor="white">
+            <Heading fontSize="xl" mb={1}>
               Select Baud Rate
             </Heading>
             <Stack direction="row" spacing={1}>
@@ -359,13 +364,13 @@ export function DataLogger() {
                 size="sm"
                 borderWidth="1px"
                 borderRadius="md"
-                color={'teal.600'}
-                borderColor={'teal.600'}
+                color="teal.600"
+                borderColor="teal.600"
                 ref={selectAvailablePorts}
                 value={baudRate}
                 isDisabled={
-                  currentStatus == status.idle ||
-                  currentStatus == status.recordStarted
+                  currentStatus === status.idle ||
+                  currentStatus === status.recordStarted
                 }
                 onChange={(e) => ChangeBaudRate(e.target.value)}
               >
@@ -380,18 +385,18 @@ export function DataLogger() {
               </Select>
             </Stack>
           </Box>
-          <Box bgColor={'white'}>
-            <Heading fontSize={'xl'} mb={1}>
+          <Box bgColor="white">
+            <Heading fontSize="xl" mb={1}>
               Record
             </Heading>
-            <Flex justifyContent={'space-between'}>
+            <Flex justifyContent="space-between">
               <Button
                 colorScheme="teal"
                 variant="outline"
                 size="sm"
                 onClick={recordStart}
-                isDisabled={currentStatus != status.streaming}
-                w={'48%'}
+                isDisabled={currentStatus !== status.streaming}
+                w="48%"
               >
                 Start
               </Button>
@@ -400,16 +405,16 @@ export function DataLogger() {
                 variant="outline"
                 size="sm"
                 onClick={recordStop}
-                isDisabled={currentStatus != status.recordStarted}
-                w={'48%'}
+                isDisabled={currentStatus !== status.recordStarted}
+                w="48%"
               >
                 Stop
               </Button>
             </Flex>
             <Stack
-              direction={'row'}
+              direction="row"
               m={1}
-              color={'teal.600'}
+              color="teal.600"
               opacity={status.recordStarted <= currentStatus ? 1 : 0.4}
             >
               <Text>elapsed time: </Text>
@@ -421,9 +426,9 @@ export function DataLogger() {
               </Text>
             </Stack>
             <Stack
-              direction={'row'}
+              direction="row"
               m={1}
-              color={'teal.600'}
+              color="teal.600"
               opacity={status.recordStarted <= currentStatus ? 1 : 0.4}
             >
               <Text>file size: </Text>
@@ -435,13 +440,13 @@ export function DataLogger() {
               </Text>
             </Stack>
             <Stack
-              direction={'row'}
+              direction="row"
               m={1}
-              color={'teal.600'}
+              color="teal.600"
               opacity={status.recordStarted <= currentStatus ? 1 : 0.4}
             >
               <Text>file: </Text>
-              <Text as={'u'} cursor={'pointer'} onClick={openSaveFolder}>
+              <Text as="u" cursor="pointer" onClick={openSaveFolder}>
                 {status.recordStarted <= currentStatus
                   ? `${savePath.split('/').slice(-1)[0]}`
                   : ''}
@@ -450,7 +455,7 @@ export function DataLogger() {
           </Box>
         </Stack>
       </GridItem>
-      <GridItem bg="" overflowX={'auto'} overflowY={'scroll'} area={'main'}>
+      <GridItem bg="" overflowX="auto" overflowY="scroll" area="main">
         <Tabs
           variant="unstyled"
           align="center"
@@ -463,8 +468,8 @@ export function DataLogger() {
               cursor="pointer"
               borderWidth="1px"
               borderRadius="md"
-              color={'teal.600'}
-              borderColor={'teal.600'}
+              color="teal.600"
+              borderColor="teal.600"
               _hover={{ background: 'teal.50' }}
               _disabled={{
                 opacity: '0.4',
@@ -489,8 +494,8 @@ export function DataLogger() {
               cursor="pointer"
               borderWidth="1px"
               borderRadius="md"
-              color={'teal.600'}
-              borderColor={'teal.600'}
+              color="teal.600"
+              borderColor="teal.600"
               _hover={{ background: 'teal.50' }}
               _disabled={{
                 opacity: '0.4',
