@@ -18,7 +18,7 @@ interface LineState {
   revision: number;
 }
 
-export class LinePlot extends React.Component<{}, LineState> {
+export default class LinePlot extends React.Component<{}, LineState> {
   constructor(props: {}) {
     super(props);
     this.state = {
@@ -35,21 +35,19 @@ export class LinePlot extends React.Component<{}, LineState> {
     };
     this.updateGraph = this.updateGraph.bind(this);
   }
+
   componentDidMount() {}
+
   updateGraph(val: number) {
-    const { line, layout } = this.state;
+    const { line, layout, revision } = this.state;
     line.x.push(line.x[line.x.length - 1] + 1);
     line.y.push(val);
-    this.setState({ revision: this.state.revision + 1 });
-    layout.datarevision = this.state.revision + 1;
+    this.setState((prevState) => ({ revision: prevState.revision + 1 }));
+    layout.datarevision = revision + 1;
   }
+
   render() {
-    return (
-      <Plot
-        data={[this.state.line]}
-        layout={this.state.layout}
-        revision={this.state.revision}
-      />
-    );
+    const { line, layout, revision } = this.state;
+    return <Plot data={[line]} layout={layout} revision={revision} />;
   }
 }

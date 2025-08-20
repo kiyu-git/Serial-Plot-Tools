@@ -1,6 +1,14 @@
 import { Box, useRadio } from '@chakra-ui/react';
+import PropTypes from 'prop-types';
+import React from 'react';
 
-export function RadioCard(props) {
+interface RadioCardProps {
+  children: React.ReactNode;
+  // Add other props that useRadio expects if needed
+}
+
+export default function RadioCard(props: RadioCardProps) {
+  const { children } = props; // Destructure children
   const { getInputProps, getRadioProps } = useRadio(props);
 
   const input = getInputProps();
@@ -8,14 +16,29 @@ export function RadioCard(props) {
 
   return (
     <Box as="label">
-      <input {...input} />
+      <input
+        type="radio"
+        name={input.name}
+        value={input.value}
+        checked={input.checked}
+        onChange={input.onChange}
+      />
       <Box
-        {...checkbox}
+        // {...checkbox} // Removed prop spreading
+        // Explicitly pass props from checkbox
+        id={checkbox.id}
+        role={checkbox.role}
+        aria-checked={checkbox['aria-checked']}
+        tabIndex={checkbox.tabIndex}
+        onKeyPress={checkbox.onKeyPress}
+        onMouseDown={checkbox.onMouseDown}
+        onFocus={checkbox.onFocus}
+        onBlur={checkbox.onBlur}
         cursor="pointer"
         borderWidth="1px"
         borderRadius="md"
-        color={'teal.600'}
-        borderColor={'teal.600'}
+        color="teal.600"
+        borderColor="teal.600"
         _hover={{ background: 'teal.50' }}
         _disabled={{
           opacity: '0.4',
@@ -33,8 +56,13 @@ export function RadioCard(props) {
         py={1}
         mx={5}
       >
-        {props.children}
+        {children}
       </Box>
     </Box>
   );
 }
+
+RadioCard.propTypes = {
+  children: PropTypes.node.isRequired,
+  // Add other propTypes for props that useRadio expects if needed
+};

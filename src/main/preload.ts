@@ -20,7 +20,7 @@ const electronHandler = {
   openFileDialog: () => ipcRenderer.invoke('openFileDialog'),
   loadData: (path: string) => ipcRenderer.invoke('loadData', path),
   on: (channel: string, func: (...args: any[]) => void) => {
-    //rendererでの受信用, funcはコールバック関数//
+    // rendererでの受信用, funcはコールバック関数//
     ipcRenderer.on(channel, (event, ...args) => func(...args));
   },
 };
