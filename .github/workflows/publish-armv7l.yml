@@ -28,9 +28,6 @@ jobs:
           node-version: 18
           cache: npm
 
-      - name: Install node-gyp and node-pre-gyp
-        run: sudo npm install -g node-gyp node-pre-gyp
-
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -39,11 +36,11 @@ jobs:
       - name: Install and build
         run: |
           npm install
+          npm run postinstall
           # Build serialport for armv7l
           cd release/app/node_modules/@serialport/bindings-cpp
-          sudo node-gyp configure build
-          cd ../../../../../
-          npm run postinstall
+          npx node-gyp configure build
+          cd -
           npm run build
 
       - name: Publish releases
