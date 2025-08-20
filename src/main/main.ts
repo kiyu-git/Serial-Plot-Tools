@@ -40,7 +40,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let subWindowRealtimeDataLogger: BrowserWindow | null = null;
+let subWindowRealtimeDataLogger: BrowserWindow[] = [];
 let subWindowDataViewer: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
@@ -131,7 +131,7 @@ const createWindow = async () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
 
-    subWindowRealtimeDataLogger = new BrowserWindow({
+    const newWindow = new BrowserWindow({
       title: 'Realtime Data Logger',
       width: width,
       height: height,
@@ -142,19 +142,19 @@ const createWindow = async () => {
           : path.join(__dirname, '../../.erb/dll/preload.js'),
       },
     });
-    subWindowRealtimeDataLogger.loadURL(
-      resolveHtmlPath('index.html', '/DataLogger')
-    );
+    newWindow.loadURL(resolveHtmlPath('index.html', '/DataLogger'));
 
-    subWindowRealtimeDataLogger.on('close', () => {
-      closeSerialPort();
+    newWindow.on('close', () => {
+      closeSerialPort(newWindow.webContents);
     });
 
     powerMonitor.on('suspend', () => {
       console.log('System suspended');
-      closeSerialPort();
-      subWindowRealtimeDataLogger.send('close', true);
+      closeSerialPort(newWindow.webContents);
+      newWindow.send('close', true);
     });
+
+    subWindowRealtimeDataLogger.push(newWindow);
   });
 
   ipcMain.handle('openDataViewer', () => {
@@ -182,24 +182,24 @@ const createWindow = async () => {
     return await getSerialPorts();
   });
 
-  ipcMain.handle('setSerialPort', async (_e, _arg) => {
-    return await setSerialPort(_arg, subWindowRealtimeDataLogger.webContents);
+  ipcMain.handle('setSerialPort', async (e, _arg) => {
+    return await setSerialPort(_arg, e.sender);
   });
 
-  ipcMain.handle('setBaudRate', async (_e, _arg) => {
-    return await setBaudRate(_arg, subWindowRealtimeDataLogger.webContents);
+  ipcMain.handle('setBaudRate', async (e, _arg) => {
+    return await setBaudRate(_arg, e.sender);
   });
 
-  ipcMain.handle('recordStart', async (_e, _arg) => {
-    return await recordStart(_arg, subWindowRealtimeDataLogger.webContents);
+  ipcMain.handle('recordStart', async (e, _arg) => {
+    return await recordStart(e.sender);
   });
 
-  ipcMain.handle('recordStop', async (_e, _arg) => {
-    return await recordStop(_arg, subWindowRealtimeDataLogger.webContents);
+  ipcMain.handle('recordStop', async (e, _arg) => {
+    return await recordStop(e.sender);
   });
 
-  ipcMain.handle('closeSerialPort', async (_e, _arg) => {
-    return closeSerialPort();
+  ipcMain.handle('closeSerialPort', async (e, _arg) => {
+    return closeSerialPort(e.sender);
   });
 
   ipcMain.handle('openSaveFolder', async (_e, _arg) => {

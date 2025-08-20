@@ -1,35 +1,26 @@
-const {
-  SerialPort
-} = require('serialport');
+const { SerialPort } = require('serialport');
 
-const {
-  ReadlineParser
-} = require('@serialport/parser-readline')
+const { ReadlineParser } = require('@serialport/parser-readline')
 
 require('date-utils');
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
 
+const portMap = new Map();
+const dataRecorderMap = new Map();
+
 // handle serial port //
 const getSerialPorts = async () => {
-  closeSerialPort();
   return SerialPort.list();
 }
 
-
-let port;
-let portPath;
-let baudRate = 9600;
-let webContents;
-
-const setSerialPort = (_portPath, _webContents) => {
+const setSerialPort = (_portPath, webContents) => {
   return new Promise(function (resolve, reject) {
-    closeSerialPort();
-    portPath = _portPath
-    port = new SerialPort({
-      path: portPath,
-      baudRate: baudRate
+    closeSerialPort(webContents);
+    const port = new SerialPort({
+      path: _portPath,
+      baudRate: 9600
     }, function (err) {
       if (err) {
         reject(err.message);
@@ -38,7 +29,7 @@ const setSerialPort = (_portPath, _webContents) => {
       }
     });
 
-    webContents = _webContents;
+    portMap.set(webContents.id, port);
 
     const parser = port.pipe(new ReadlineParser({
       delimiter: '\r\n'
@@ -51,6 +42,7 @@ const setSerialPort = (_portPath, _webContents) => {
         rawData: _rawData.split(",")
       }
       webContents.send("newData", data);
+      const dataRecorder = dataRecorderMap.get(webContents.id);
       if (dataRecorder != null) dataRecorder.saveData(data);
     });
 
@@ -60,34 +52,37 @@ const setSerialPort = (_portPath, _webContents) => {
   })
 }
 
-const closeSerialPort = () => {
+const closeSerialPort = (webContents) => {
+  const port = portMap.get(webContents.id);
   if (port !== undefined && port.isOpen) {
     port.close();
   }
 }
 
 // handle baudRate //
-const setBaudRate = async (_baudRate, _webContents) => {
-  baudRate = Number(_baudRate);
-  await setSerialPort(portPath, _webContents);
+const setBaudRate = async (_baudRate, webContents) => {
+  const port = portMap.get(webContents.id);
+  if (port) {
+    await port.update({ baudRate: Number(_baudRate) });
+  }
 }
 
 // handle save  //
-let dataRecorder;
 class DataRecorder {
   savePath = ""
   shouldRecord = false;
   numSamples = 0;
-  constructor() {
+  start_date;
+  webContents;
+  constructor(webContents) {
+    this.webContents = webContents;
     // 保存パスの作成
     // 2022-08-26_20-13-47
-    const start_date = new Date();
-    const start_date_format = formatDate(start_date);
+    this.start_date = new Date();
+    const start_date_format = formatDate(this.start_date);
     const saveDir = path.join(os.homedir(), "/Documents/PlantAnalysis/Data", start_date_format)
     // 保存先の作成
-    if (!fs.existsSync(saveDir)) fs.mkdirSync(saveDir, {
-      recursive: true
-    });
+    if (!fs.existsSync(saveDir)) fs.mkdirSync(saveDir, { recursive: true });
     this.savePath = path.join(saveDir, `${start_date_format}.csv`);
     // 記録の開始
     this.shouldRecord = true;
@@ -123,7 +118,7 @@ class DataRecorder {
     // 計測時間・容量を通知
     const info = {}
     /// 計測時間
-    const elapsed_time = new Date() - start_date.getTime();
+    const elapsed_time = new Date() - this.start_date.getTime();
     const elapsedSeconds = Math.floor(elapsed_time / 1000) % 60;
     const elapsedMinutes = Math.floor(elapsed_time / 60000) % 60;
     const elapsedHour = Math.floor(elapsed_time / 3600000) % 24;
@@ -141,7 +136,7 @@ class DataRecorder {
       console.error(err);
     }
 
-    webContents.send("info", info);
+    this.webContents.send("info", info);
   }
 
   stopRecord = () => {
@@ -149,13 +144,18 @@ class DataRecorder {
   }
 }
 
-const recordStart = () => {
-  dataRecorder = new DataRecorder();
+const recordStart = (webContents) => {
+  const dataRecorder = new DataRecorder(webContents);
+  dataRecorderMap.set(webContents.id, dataRecorder);
   return dataRecorder.savePath;
 }
 
-const recordStop = () => {
-  dataRecorder.stopRecord();
+
+const recordStop = (webContents) => {
+  const dataRecorder = dataRecorderMap.get(webContents.id);
+  if (dataRecorder) {
+    dataRecorder.stopRecord();
+  }
   return "sello"
 }
 
