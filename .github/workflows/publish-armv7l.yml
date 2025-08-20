@@ -40,7 +40,7 @@ jobs:
         run: |
           npm install
           # Build serialport for armv7l
-          cd node_modules/@serialport/bindings-cpp
+          cd release/app/node_modules/@serialport/bindings-cpp
           sudo node-gyp configure build
           cd ../../../
           npm run postinstall
