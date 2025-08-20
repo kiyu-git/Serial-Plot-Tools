@@ -115,7 +115,7 @@ export default function DataViewer() {
       }
       setState(updateLines);
     }
-  }, [newData, state]); // Added state to dependency array
+  }, [newData]); // Added state to dependency array
 
   return (
     <>
