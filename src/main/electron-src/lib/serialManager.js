@@ -175,7 +175,7 @@ class DataRecorder {
   };
 
   stopRecord = () => {
-    this.shouldRecord = true;
+    this.shouldRecord = false;
   };
 }
 
