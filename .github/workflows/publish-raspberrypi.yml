@@ -1,56 +1,36 @@
-name: Publish Raspberry Pi
+name: Publish Raspberry Pi (arm64)
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
-  publish:
-    # To enable auto publishing to github, update your electron publisher
-    # config in package.json > "build" and remove the conditional below
-    # if: ${{ github.repository_owner == 'electron-react-boilerplate' }}
-
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-
+  build-arm64:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout git repo
+      - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Install Node and NPM
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: npm
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.10'
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: arm64,arm
+          platforms: arm64
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libudev-dev
-
-      - name: Install and build
-        run: |
-          npm install
-          npm run build
-
-      - name: Publish releases
+      - name: Build for arm64
         env:
-          # This is used for uploading release assets to github
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm exec electron-builder -- --publish always --armv7l --arm64
+          docker run --rm -t \
+            --platform linux/arm64 \
+            -v $PWD:/app \
+            -w /app \
+            node:18-bullseye \
+            bash -c "
+              npm install &&
+              npm run postinstall &&
+              npx electron-rebuild &&
+              npm run build &&
+              npx electron-builder --arm64 --publish always
+            "
