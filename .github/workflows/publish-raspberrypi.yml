@@ -33,14 +33,19 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64,arm
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libudev-dev
+
       - name: Install and build
         run: |
           npm install
-          npm run postinstall
-          # Build serialport for armv7l
-          cd release/app/node_modules/@serialport/bindings-cpp
-          npx node-gyp configure build
-          cd -
           npm run build
 
       - name: Publish releases
