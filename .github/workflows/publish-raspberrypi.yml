@@ -1,4 +1,4 @@
-name: Publish armv7l
+name: Publish Raspberry Pi
 
 on:
   push:
