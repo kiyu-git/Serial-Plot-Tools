@@ -1,12 +1,13 @@
 import { DownloadIcon } from '@chakra-ui/icons';
 import { Box, Center, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
+import { Data, Layout } from 'plotly.js';
 import React, { useState } from 'react';
 import Plot from 'react-plotly.js';
 import styles from './index.module.scss';
 
 type plotData = {
-  x: Number[];
-  y: Number[];
+  x: Date[];
+  y: number[];
   title: string;
 };
 
@@ -95,20 +96,22 @@ export default function DataViewer() {
             <Plot
               className={styles.plot}
               key={data.title}
-              data={[
-                {
-                  x: data.x,
-                  y: data.y,
-                  type: 'scatter',
-                  mode: 'lines',
-                },
-              ]}
+              data={
+                [
+                  {
+                    x: data.x,
+                    y: data.y,
+                    type: 'scatter',
+                    mode: 'lines',
+                  },
+                ] as Data[]
+              }
               layout={{
                 xaxis: { title: '時刻' },
                 yaxis: { title: data.title },
                 title: '',
                 margin: { t: 0 },
-              }}
+              } as Partial<Layout>}
             />
           );
         })}

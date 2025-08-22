@@ -19,12 +19,12 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { PortInfo } from '@serialport/bindings-interface';
-import { Layout, PlotData } from 'plotly.js';
+import { Layout, ScatterData } from 'plotly.js';
 import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import styles from './index.module.scss';
 
-type data = {
+type dataType = {
   timestamp: Date;
   rawData: string[];
 };
@@ -37,9 +37,9 @@ type info = {
 class Line {
   name: string;
 
-  lineData: PlotData;
+  lineData: Partial<ScatterData>;
 
-  layout: Layout;
+  layout: Partial<Layout>;
 
   revision: number;
 
@@ -101,7 +101,7 @@ class Line {
     this.revision += 1;
   }
 
-  getLineData(mode: Number) {
+  getLineData(mode: number): Partial<ScatterData> | undefined {
     if (mode === 0) {
       this.lineData.x = this.shortX;
       this.lineData.y = this.shortY;
@@ -112,6 +112,7 @@ class Line {
       this.lineData.y = this.longY;
       return this.lineData;
     }
+    return undefined;
   }
 
   clearLongLineData() {
@@ -144,7 +145,7 @@ export default function DataLogger() {
   const selectAvailablePorts = useRef<HTMLSelectElement>(null);
   const [availablePorts, SetAvailablePorts] = useState<Array<PortInfo>>([]);
   const [baudRate, setBaudRate] = useState<string>('9600');
-  const [newData, setNewData] = useState<data>();
+  const [newData, setNewData] = useState<dataType>();
   const [info, setInfo] = useState<info>();
   const [lines, setLines] = useState<Array<Line>>([]);
   const [displayMode, setDisplayMode] = useState(displayModes.short);
@@ -174,7 +175,9 @@ export default function DataLogger() {
       alert(
         'ポートがひらけませんでした。他のアプリケーションでこのポートを使用してる可能性があります。'
       );
-      selectAvailablePorts.current!.options[0].selected = true;
+      if (selectAvailablePorts.current) {
+        selectAvailablePorts.current.options[0].selected = true;
+      }
     }
   };
 
@@ -245,7 +248,7 @@ export default function DataLogger() {
   useEffect(() => {
     getAvailableSerialPorts();
 
-    window.api.on('newData', (_data: data) => {
+    window.api.on('newData', (_data: dataType) => {
       if (_data.rawData[0].includes('*')) {
         console.log(_data.rawData[0]);
         return;
@@ -258,7 +261,9 @@ export default function DataLogger() {
     });
 
     window.api.on('close', (_data: boolean) => {
-      selectAvailablePorts.current!.options[0].selected = true;
+      if (selectAvailablePorts.current) {
+        selectAvailablePorts.current.options[0].selected = true;
+      }
       setCurrentStatus(status.idle);
     });
   }, []);
@@ -268,7 +273,7 @@ export default function DataLogger() {
     switch (currentStatus) {
       case status.idle:
         // 何も出さない
-        return;
+        return null;
       case status.portSelected:
       case status.chgBaudRate:
         // loading
@@ -290,11 +295,13 @@ export default function DataLogger() {
       default:
         // グラフ描画
         return lines.map((line) => {
+          const lineData = line.getLineData(displayMode);
+          if (!lineData) return null;
           return (
             <Plot
               key={line.name}
               className={styles.plot}
-              data={[line.getLineData(displayMode)]}
+              data={[lineData]}
               layout={line.layout}
               revision={line.revision}
             />

@@ -1,27 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
+import { ScatterData, Layout } from 'plotly.js';
 import './index.scss';
 
-type LineData = {
-  type: string;
-  x: string[];
-  y: number[];
-  mode: string;
-  name: string;
-};
-
-type Layout = {
-  width: number | string;
-  height: number | string;
-  datarevision: number;
-  yaxis: {
-    title: {
-      text: string;
-    };
-  };
-};
-
-type data = {
+type DataType = {
   timestamp: string;
   rawData: string[];
 };
@@ -29,9 +11,9 @@ type data = {
 class Line {
   name: string;
 
-  lineData: LineData;
+  lineData: Partial<ScatterData>;
 
-  layout: Layout;
+  layout: Partial<Layout>;
 
   revision: number;
 
@@ -46,7 +28,6 @@ class Line {
     };
 
     this.layout = {
-      width: '100%',
       height: 400,
       datarevision: 0,
       yaxis: {
@@ -59,7 +40,7 @@ class Line {
     this.revision = 0;
   }
 
-  update(lineData: LineData, layout: Layout, revision: number) {
+  update(lineData: Partial<ScatterData>, layout: Partial<Layout>, revision: number) {
     this.lineData = lineData;
     this.layout = layout;
     this.revision = revision;
@@ -69,11 +50,11 @@ class Line {
 export default function DataViewer() {
   const maxNumPoints = 15;
   const isPlotExist = useRef<boolean>(false);
-  const [newData, setNewData] = useState<data>();
+  const [newData, setNewData] = useState<DataType>();
   const [state, setState] = useState<Array<Line>>([]);
 
   useEffect(() => {
-    window.api.on('newData', (_data: data) => {
+    window.api.on('newData', (_data: DataType) => {
       if (_data.rawData[0].includes('*')) {
         console.log(_data.rawData[0]);
         return;
@@ -84,6 +65,7 @@ export default function DataViewer() {
 
   useEffect(() => {
     if (newData === undefined) return;
+    // @ts-ignore
     if (!isPlotExist.current) {
       const lines: Line[] = [];
       newData.rawData.forEach((point) => {
@@ -100,22 +82,26 @@ export default function DataViewer() {
       console.log(updateLines.length);
       for (let i = 0; i < state.length; i++) {
         const { lineData, layout, revision } = updateLines[i]; // Changed to const
-        lineData.x.push(newData.timestamp);
-        const pointX =
-          newData.rawData[i].match(/[+-]?(?:\d+\.?\d*|\.\d+)/)[0] || '0';
-        lineData.y.push(parseFloat(pointX));
-        if (maxNumPoints < lineData.x.length) {
-          lineData.x.shift();
-          lineData.y.shift();
+        (lineData.x as string[]).push(newData.timestamp);
+        const matchResult = newData.rawData[i].match(
+          /[+-]?(?:\d+\.?\d*|\.\d+)/
+        );
+        const pointX = matchResult ? matchResult[0] : '0';
+        (lineData.y as number[]).push(parseFloat(pointX));
+        if (maxNumPoints < (lineData.x as string[]).length) {
+          (lineData.x as string[]).shift();
+          (lineData.y as number[]).shift();
         }
-        layout.datarevision += 1;
+        if (layout.datarevision) {
+          layout.datarevision = Number(layout.datarevision) + 1;
+        }
         // revision += 1; // Removed as it's not used after this line
 
         updateLines[i].update(lineData, layout, revision);
       }
       setState(updateLines);
     }
-  }, [newData]); // Added state to dependency array
+  }, [newData, state]); // Added state to dependency array
 
   return (
     <>
