@@ -106,12 +106,14 @@ export default function DataViewer() {
                   },
                 ] as Data[]
               }
-              layout={{
-                xaxis: { title: '時刻' },
-                yaxis: { title: data.title },
-                title: '',
-                margin: { t: 0 },
-              } as Partial<Layout>}
+              layout={
+                {
+                  xaxis: { title: '時刻' },
+                  yaxis: { title: data.title },
+                  title: '',
+                  margin: { t: 0 },
+                } as Partial<Layout>
+              }
             />
           );
         })}

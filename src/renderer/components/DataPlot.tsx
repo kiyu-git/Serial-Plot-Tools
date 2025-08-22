@@ -1,6 +1,6 @@
+import { Layout, ScatterData } from 'plotly.js';
 import { useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
-import { ScatterData, Layout } from 'plotly.js';
 import './index.scss';
 
 type DataType = {
@@ -40,7 +40,11 @@ class Line {
     this.revision = 0;
   }
 
-  update(lineData: Partial<ScatterData>, layout: Partial<Layout>, revision: number) {
+  update(
+    lineData: Partial<ScatterData>,
+    layout: Partial<Layout>,
+    revision: number
+  ) {
     this.lineData = lineData;
     this.layout = layout;
     this.revision = revision;

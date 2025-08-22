@@ -81,6 +81,10 @@
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/.erb/mocks/fileMock.js",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy"
     },
+    "setupFilesAfterEnv": [
+      "jest-canvas-mock",
+      "<rootDir>/test/jest.setup.js"
+    ],
     "setupFiles": [
       "./.erb/scripts/check-build-exists.ts"
     ],
@@ -163,6 +167,7 @@
     "html-webpack-plugin": "^5.5.1",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.5.0",
+    "jest-canvas-mock": "^2.5.2",
     "jest-environment-jsdom": "^29.5.0",
     "mini-css-extract-plugin": "^2.7.6",
     "prettier": "^2.8.8",

@@ -1,7 +1,6 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
-/* global BrowserWindow */
 
-import type { BrowserWindow } from 'electron'; // Added this line
+import type { BrowserWindow, HandlerDetails } from 'electron'; // Added this line
 
 /**
  * This module executes inside of electron's main process. You can start
@@ -34,7 +33,8 @@ const {
 } = require('./electron-src/lib/serialManager');
 const { resolveHtmlPath } = require('./util');
 
-const transpose = (a: string[][]): string[][] => a[0].map((_: string, c: number) => a.map((r: string[]) => r[c])); // Added types
+const transpose = (a: string[][]): string[][] =>
+  a[0].map((_: string, c: number) => a.map((r: string[]) => r[c])); // Added types
 
 class AppUpdater {
   constructor() {
@@ -86,7 +86,8 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
-  mainWindow = new ElectronBrowserWindow({ // Used ElectronBrowserWindow
+  mainWindow = new ElectronBrowserWindow({
+    // Used ElectronBrowserWindow
     title: 'Serial Plot Tools',
     show: false,
     width: 1024,
@@ -117,7 +118,8 @@ const createWindow = async () => {
   });
 
   // Open urls in the user's browser
-  mainWindow.webContents.setWindowOpenHandler((edata: Electron.HandlerDetails) => { // Added type for edata
+  mainWindow.webContents.setWindowOpenHandler((edata: HandlerDetails) => {
+    // Added type for edata
     shell.openExternal(edata.url);
     return { action: 'deny' };
   });
@@ -136,7 +138,8 @@ const createWindow = async () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
 
-    const newWindow = new ElectronBrowserWindow({ // Used ElectronBrowserWindow
+    const newWindow = new ElectronBrowserWindow({
+      // Used ElectronBrowserWindow
       title: 'Realtime Data Logger',
       width,
       height,
@@ -169,7 +172,8 @@ const createWindow = async () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
 
-    subWindowDataViewer = new ElectronBrowserWindow({ // Used ElectronBrowserWindow
+    subWindowDataViewer = new ElectronBrowserWindow({
+      // Used ElectronBrowserWindow
       title: 'Data Viewer',
       width,
       height,

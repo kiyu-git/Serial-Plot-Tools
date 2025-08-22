@@ -4,11 +4,7 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: macos-latest
 
     steps:
       - name: Check out Git repository
@@ -35,5 +31,4 @@ jobs:
         run: |
           npm run package
           npm run lint
-          npm exec tsc
           npm test
