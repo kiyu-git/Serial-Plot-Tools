@@ -1,6 +1,8 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 /* global BrowserWindow */
 
+import type { BrowserWindow } from 'electron'; // Added this line
+
 /**
  * This module executes inside of electron's main process. You can start
  * electron renderer process from here and communicate with the other processes
@@ -10,7 +12,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 const {
-  BrowserWindow,
+  BrowserWindow: ElectronBrowserWindow, // Renamed to avoid conflict with type
   app,
   ipcMain,
   shell,
@@ -32,7 +34,7 @@ const {
 } = require('./electron-src/lib/serialManager');
 const { resolveHtmlPath } = require('./util');
 
-const transpose = (a) => a[0].map((_, c) => a.map((r) => r[c]));
+const transpose = (a: string[][]): string[][] => a[0].map((_: string, c: number) => a.map((r: string[]) => r[c])); // Added types
 
 class AppUpdater {
   constructor() {
@@ -84,7 +86,7 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
-  mainWindow = new BrowserWindow({
+  mainWindow = new ElectronBrowserWindow({ // Used ElectronBrowserWindow
     title: 'Serial Plot Tools',
     show: false,
     width: 1024,
@@ -115,7 +117,7 @@ const createWindow = async () => {
   });
 
   // Open urls in the user's browser
-  mainWindow.webContents.setWindowOpenHandler((edata) => {
+  mainWindow.webContents.setWindowOpenHandler((edata: Electron.HandlerDetails) => { // Added type for edata
     shell.openExternal(edata.url);
     return { action: 'deny' };
   });
@@ -134,7 +136,7 @@ const createWindow = async () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
 
-    const newWindow = new BrowserWindow({
+    const newWindow = new ElectronBrowserWindow({ // Used ElectronBrowserWindow
       title: 'Realtime Data Logger',
       width,
       height,
@@ -154,7 +156,7 @@ const createWindow = async () => {
     powerMonitor.on('suspend', () => {
       console.log('System suspended');
       closeSerialPort(newWindow.webContents);
-      newWindow.send('close', true);
+      newWindow.webContents.send('close', true); // Fixed: newWindow.send -> newWindow.webContents.send
     });
 
     subWindowRealtimeDataLogger.push(newWindow);
@@ -167,7 +169,7 @@ const createWindow = async () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
 
-    subWindowDataViewer = new BrowserWindow({
+    subWindowDataViewer = new ElectronBrowserWindow({ // Used ElectronBrowserWindow
       title: 'Data Viewer',
       width,
       height,
@@ -213,8 +215,13 @@ const createWindow = async () => {
   });
 
   ipcMain.handle('openFileDialog', async () => {
+    const parentWindow = subWindowDataViewer || mainWindow;
+    if (!parentWindow) {
+      console.error('No parent window available for openFileDialog.');
+      return undefined; // Or throw an error, or return a rejected promise
+    }
     return dialog
-      .showOpenDialog(subWindowDataViewer, {
+      .showOpenDialog(parentWindow, {
         properties: ['openFile'],
         title: 'ファイルを選択する',
         filters: [
