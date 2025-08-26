@@ -1,4 +1,3 @@
-const { notarize } = require('@electron/notarize');
 const { build } = require('../../package.json');
 
 exports.default = async function notarizeMacos(context) {
@@ -6,6 +5,8 @@ exports.default = async function notarizeMacos(context) {
   if (electronPlatformName !== 'darwin') {
     return;
   }
+
+  const { notarize } = require('@electron/notarize');
 
   if (process.env.CI !== 'true') {
     console.warn('Skipping notarizing step. Packaging is not running in CI');
