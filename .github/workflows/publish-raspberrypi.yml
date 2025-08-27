@@ -57,6 +57,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       # 2. arm32v7 Dockerコンテナ内でビルドと公開の全工程を実行
       - name: Build and Publish inside arm32v7 container
         env:
