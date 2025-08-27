@@ -60,12 +60,15 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       # 2. arm32v7 Dockerコンテナ内でビルドと公開の全工程を実行
       - name: Build and Publish inside arm32v7 container
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          docker run --rm \
+          docker run --rm --platform linux/arm/v7 \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
             -e GH_TOKEN \
